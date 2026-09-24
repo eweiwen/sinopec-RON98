@@ -362,7 +362,14 @@ async function initMap(){
     await loadAMap();
     amap=new AMap.Map('map',{zoom:11,center:[114.06,22.55],viewMode:'2D'});
     infoWin=new AMap.InfoWindow({offset:new AMap.Pixel(0,-26)});
-    mapInited=true; renderMapSync();
+    mapInited=true;
+    /* complete 是地图内部真正就绪的信号：此前做投影/视野换算会产生 LngLat(NaN) */
+    amap.on('complete',function(){
+      window.__mapReady=true;
+      var d=document.getElementById('diag'); if(d&&!window.__diag.alerts.length) d.style.display='none';
+      if(window.__pendingSync){window.__pendingSync=false; renderMapSync();}
+    });
+    renderMapSync();
     /* 就绪检测：8 秒内瓦片未 complete 则提示校验问题 */
     amap.on('complete',function(){ window.__mapReady=true; var d=document.getElementById('diag'); if(d&&!window.__diag.alerts.length) d.style.display='none'; });
     setTimeout(function(){
@@ -400,7 +407,7 @@ function bboxFit(arr){
   if(!arr.length) return;
   let a=1e9,b=1e9,c=-1e9,d=-1e9;
   arr.forEach(s=>{a=Math.min(a,s.lng);c=Math.max(c,s.lng);b=Math.min(b,s.lat);d=Math.max(d,s.lat);});
-  amap.setBounds(new AMap.Bounds([a,b],[c,d]),false,70);
+  amap.setBounds(new AMap.Bounds([a,b],[c,d]));
 }
 function clearOverlays(){
   if(labelsLayer){amap.remove(labelsLayer);labelsLayer=null;}
@@ -408,6 +415,8 @@ function clearOverlays(){
 }
 function renderMapSync(){
   if(!mapInited||!window.AMap) return;
+  /* 地图未 complete 前一律等待，避免 LngLat(NaN) */
+  if(!window.__mapReady){ window.__pendingSync=true; return; }
   try{
   clearOverlays();
   const arr=filtered();
