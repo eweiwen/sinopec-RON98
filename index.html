@@ -63,6 +63,16 @@ body{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
 .chip.on{background:#fdeceb;border-color:var(--brand);color:var(--brand);font-weight:600}
 .chip .n{font-size:11px;opacity:.75;margin-left:2px}
 .chips.sub{margin-top:4px}
+.nearrow{display:flex;gap:6px;margin-top:6px;align-items:center}
+.nearrow input{flex:1;border:1px solid var(--line);border-radius:10px;background:var(--card);
+  padding:8px 10px;font-size:13px;outline:none;color:var(--txt);min-width:0}
+.nearrow input:focus{border-color:var(--brand)}
+.nearrow .go{border:0;background:var(--info);color:#fff;border-radius:10px;padding:8px 14px;
+  font-size:13px;font-weight:600;flex:none}
+.nearrow .go:disabled{background:#b9c4d0}
+.nearchips{display:flex;gap:6px;margin-top:4px;padding:0 0 2px}
+.nearchips .chip{padding:3px 10px;font-size:12px}
+.pin-target{font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))}
 
 /* ---------- 计数条 ---------- */
 .countbar{max-width:720px;margin:0 auto;padding:10px 14px 0;font-size:12.5px;color:var(--txt2);
@@ -137,6 +147,11 @@ footer a{color:var(--info);text-decoration:none}
   </div>
   <div class="chips" id="cityChips"></div>
   <div class="chips sub" id="statusChips"></div>
+  <div class="nearrow">
+    <input id="nearAddr" type="search" placeholder="按地址找附近油站，如：福田区香蜜湖" autocomplete="off">
+    <button class="go" id="nearGo">查找</button>
+  </div>
+  <div class="nearchips" id="radiusChips"></div>
 </div>
 
 <div class="countbar" id="countbar"></div>
@@ -163,7 +178,8 @@ const STATUS_META = {
   unlikely:   {label:'疑似不参与', cls:'off'},
 };
 const PAGE = 50;
-const state = {city:'全部', status:'all', q:'', view:'list', coords:null, page:1};
+const RADII = [[1000,'1km'],[3000,'3km'],[5000,'5km'],[10000,'10km']];
+const state = {city:'全部', status:'all', q:'', view:'list', coords:null, page:1, near:null};
 let ALL = [], META = null;
 
 /* ================= 工具 ================= */
@@ -174,6 +190,7 @@ function hav(lat1,lng1,lat2,lng2){
   const a=Math.sin((lat2-lat1)*d/2)**2+Math.cos(lat1*d)*Math.cos(lat2*d)*Math.sin((lng2-lng1)*d/2)**2;
   return 2*R*Math.asin(Math.sqrt(a));
 }
+function fmtDist(m){ return m<1000 ? Math.round(m)+' m' : (m/1000).toFixed(m<10000?1:0)+' km'; }
 function navAmap(s){
   const to=`${s.lng},${s.lat},${encodeURIComponent(s.name)}`;
   return `https://uri.amap.com/navigation?to=${to}&mode=car&src=sinopec-ron98&coordinate=gaode&callnative=1`;
@@ -201,9 +218,14 @@ function filtered(){
     if(q && !(s.name.toLowerCase().includes(q)||s.address.toLowerCase().includes(q)||s.district.toLowerCase().includes(q))) return false;
     return true;
   });
-  if(state.coords){
+  if(state.near){
+    const n=state.near;
+    arr=arr.map(s=>({...s,_d:hav(n.lat,n.lng,s.lat,s.lng)*1000}))
+           .filter(s=>s._d<=n.radius)
+           .sort((a,b)=>a._d-b._d);
+  }else if(state.coords){
     const [la,ln]=state.coords;
-    arr=arr.map(s=>({...s,_d:hav(la,ln,s.lat,s.lng)})).sort((a,b)=>a._d-b._d);
+    arr=arr.map(s=>({...s,_d:hav(la,ln,s.lat,s.lng)*1000})).sort((a,b)=>a._d-b._d);
   }
   return arr;
 }
@@ -232,7 +254,7 @@ function renderList(){
   }
   list.innerHTML=show.map(s=>{
     const st=STATUS_META[s.status]||STATUS_META.unverified;
-    const dist=s._d!=null?(s._d<1?Math.round(s._d*1000)+' m':s._d.toFixed(1)+' km'):'';
+    const dist=s._d!=null?`<span class="dist">${fmtDist(s._d)}</span>`:'';
     const tel=s.tel?`<a class="abtn tel" href="tel:${esc(s.tel.replace(/[^0-9\-]/g,''))}">📞 电话</a>`:'';
     return `<div class="card">
       <div class="r1"><div class="name">${esc(s.name)}</div><span class="badge ${st.cls}">${st.label}</span></div>
@@ -255,9 +277,10 @@ function renderList(){
 /* ================= 计数条 ================= */
 function renderCount(){
   const arr=filtered();
-  $('#countbar').innerHTML=`当前筛选 <b>${arr.length}</b> 座` +
-    (state.coords?'<span class="dist-tip">· 已按距您距离排序</span>':'') +
-    (state.status==='unverified'&&arr.length?'<span>· 点击卡片按钮可跳转导航实地核验</span>':'');
+  let ctx='';
+  if(state.near) ctx=`<span class="dist-tip">· 距“${esc(state.near.label)}” ${state.near.radius/1000} 公里内</span>`;
+  else if(state.coords) ctx='<span class="dist-tip">· 已按距您距离排序</span>';
+  $('#countbar').innerHTML=`当前筛选 <b>${arr.length}</b> 座${ctx}`;
 }
 
 /* ================= 定位 ================= */
@@ -266,6 +289,7 @@ $('#btnLoc').onclick=()=>{
   const btn=$('#btnLoc'); btn.textContent='定位中…';
   navigator.geolocation.getCurrentPosition(p=>{
     state.coords=[p.coords.latitude,p.coords.longitude];
+    state.near=null;
     btn.textContent='📍 已按距离排序'; btn.classList.add('using');
     apply();
   },()=>{btn.textContent='📍 定位失败';setTimeout(()=>btn.textContent='📍 最近优先',1500);
@@ -292,76 +316,152 @@ function setView(v){
   else renderList();
 }
 
-/* ================= 地图（懒加载 + 自动降级） ================= */
-let mapInited=false, AMapOk=false, mass=null, infoWin=null, amap=null;
-function amapKeyOk(){ return window.__AMAP_KEY__ && !String(window.__AMAP_KEY__).includes('__AMAP_KEY__'); }
+/* ================= 地图（懒加载 + 自动降级 + 站名标签直显） ================= */
+let mapInited=false, amap=null, labelsLayer=null, infoWin=null, nearOverlay=null;
+
+function amapKeyOk(){ return window.__AMAP_KEY__ && !String(window.__AMAP_KEY__).includes('@@'); }
 function loadAMap(){
   return new Promise((res,rej)=>{
     if(window.AMap) return res();
     if(!amapKeyOk()) return rej(new Error('no-key'));
-    if(window.__AMAP_SECURITY_CODE__ && !String(window.__AMAP_SECURITY_CODE__).includes('__AMAP_SECURITY_CODE__')){
-      window._AMapSecurityConfig={securityJsCode:window.__AMAP_SECURITY_CODE__};
-    }
+    const sc=window.__AMAP_SECURITY_CODE__;
+    if(sc && !String(sc).includes('@@')) window._AMapSecurityConfig={securityJsCode:sc};
     const s=document.createElement('script');
     s.src='https://webapi.amap.com/maps?v=2.0&key='+window.__AMAP_KEY__;
     s.onload=res; s.onerror=()=>rej(new Error('load-fail'));
     document.head.appendChild(s);
   });
 }
-function pin(color){
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="30" viewBox="0 0 24 32"><path d="M12 0C5.4 0 0 5.4 0 12c0 8.8 12 20 12 20s12-11.2 12-20C24 5.4 18.6 0 12 0z" fill="%23${color}"/><circle cx="12" cy="12" r="4.6" fill="%23ffffff"/></svg>`;
-  return 'data:image/svg+xml,'+svg.replace('%23','#');
+function mapFallback(msg){
+  $('#map').style.display='none';
+  const fb=$('#mapFallback'); fb.style.display='block';
+  fb.innerHTML=msg;
 }
 async function initMap(){
   if(mapInited){renderMapSync();return;}
   if(!amapKeyOk()){
-    $('#map').style.display='none';
-    const fb=$('#mapFallback'); fb.style.display='block';
-    fb.innerHTML=`<b>地图密钥未配置</b><br><br>管理员需在仓库 Settings → Secrets 中添加 <b>AMAP_KEY</b>（及可选 AMAP_SECURITY_CODE）后重新运行部署，页面将自动加载内嵌地图。<br><br>当前已自动保持<b>列表模式</b>可用，所有站点均可搜索、按距离排序并一键导航。`;
+    mapFallback(`<b>地图密钥未配置</b><br><br>管理员需在仓库 Settings → Secrets 中添加 <b>AMAP_KEY</b>（及可选 AMAP_SECURITY_CODE）后重新运行部署，页面将自动加载内嵌地图。<br><br>当前已自动保持<b>列表模式</b>可用，所有站点均可搜索、按距离排序并一键导航。`);
     return;
   }
   try{
     await loadAMap();
     amap=new AMap.Map('map',{zoom:11,center:[114.06,22.55],viewMode:'2D'});
-    infoWin=new AMap.InfoWindow({offset:new AMap.Pixel(0,-30)});
-    mapInited=true; amapOk=true; renderMapSync();
+    infoWin=new AMap.InfoWindow({offset:new AMap.Pixel(0,-26)});
+    mapInited=true; renderMapSync();
   }catch(e){
-    $('#map').style.display='none';
-    const fb=$('#mapFallback'); fb.style.display='block';
-    fb.innerHTML=`<b>地图加载失败</b><br><br>请检查 AMAP_KEY 是否为“Web端(JS API)”类型、安全密钥是否正确、以及是否已在高德控制台为本站域名配置白名单。<br><br>列表模式不受影响。`;
+    mapFallback(`<b>地图加载失败</b><br><br>请检查 AMAP_KEY 是否为“Web端(JS API)”类型、安全密钥是否正确、以及是否已在高德控制台为本站域名配置白名单。<br><br>列表模式不受影响。`);
   }
+}
+/* 站名标签直显：LabelsLayer 海量标注，按状态着色 */
+const LABEL_STYLE={
+  confirmed:{fill:'#0f7b38',bg:'#e7f6ec',border:'#9fd8b2'},
+  unverified:{fill:'#1d4ed8',bg:'#e8effc',border:'#a9c3ee'},
+  unlikely:{fill:'#6b7280',bg:'#f0f1f3',border:'#d4d9df'},
+};
+function bboxFit(arr){
+  if(!arr.length) return;
+  let a=1e9,b=1e9,c=-1e9,d=-1e9;
+  arr.forEach(s=>{a=Math.min(a,s.lng);c=Math.max(c,s.lng);b=Math.min(b,s.lat);d=Math.max(d,s.lat);});
+  amap.setBounds(new AMap.Bounds([a,b],[c,d]),false,70);
+}
+function clearOverlays(){
+  if(labelsLayer){amap.remove(labelsLayer);labelsLayer=null;}
+  if(nearOverlay){amap.remove(nearOverlay);nearOverlay=null;}
 }
 function renderMapSync(){
   if(!mapInited||!window.AMap) return;
+  clearOverlays();
   const arr=filtered();
-  if(mass){mass.setMap(null);mass=null;}
-  const colors={confirmed:'16a34a',unverified:'2563eb',unlikely:'9ca3af'};
-  const mk=c=>'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="22" height="30" viewBox="0 0 24 32"><path d="M12 0C5.4 0 0 5.4 0 12c0 8.8 12 20 12 20s12-11.2 12-20C24 5.4 18.6 0 12 0z" fill="%23'+c+'"/><circle cx="12" cy="12" r="4.6" fill="%23fff"/></svg>';
-  const styleOf={confirmed:0,unverified:1,unlikely:2};
-  const styles=[colors.confirmed,colors.unverified,colors.unlikely].map(c=>({
-    url:mk(c),size:new AMap.Size(22,30),anchor:new AMap.Pixel(11,30)
-  }));
-  mass=new AMap.MassMarks(arr.map((s,i)=>({
-    lnglat:[s.lng,s.lat],name:s.name,address:s.address,tel:s.tel,
-    id:s.id,status:s.status,style:styleOf[s.status]??1
-  })),{zIndex:120,zooms:[3,20],styles});
-  mass.setMap(amap);
-  mass.on('click',e=>{
-    const d=e.data||{};
-    const st=STATUS_META[d.status]||STATUS_META.unverified;
-    const tel=d.tel?`<div style="margin-top:2px">📞 ${esc(d.tel)}</div>`:'';
-    infoWin.setContent(`<div style="font-size:13px;max-width:230px">
-      <b>${esc(d.name)}</b><div style="color:#666;margin-top:2px">${esc(d.address||'')}</div>${tel}
-      <div style="margin-top:2px;color:#999;font-size:11px">状态：${st.label}</div>
-      <a href="${navAmap({name:d.name,lng:d.lnglat.lng,lat:d.lnglat.lat})}" target="_blank" rel="noopener"
-         style="display:inline-block;margin-top:6px;background:#c8102e;color:#fff;border-radius:6px;padding:4px 12px;text-decoration:none;font-size:12px">🧭 导航</a>
-    </div>`);
-    infoWin.open(amap,[d.lnglat.lng,d.lnglat.lat]);
+  if(!arr.length) return;
+  const lms=arr.map(s=>{
+    const st=LABEL_STYLE[s.status]||LABEL_STYLE.unverified;
+    return new AMap.LabelMarker({
+      name:s.id, position:[s.lng,s.lat], rank:1,
+      text:{
+        content:s.name.replace(/^中国石化/,''),
+        direction:'top', offset:[0,-6],
+        style:{
+          fillColor:st.fill, fontSize:11, strokeColor:'#ffffff', strokeWidth:2,
+          backgroundColor:st.bg, borderColor:st.border, borderWidth:1,
+          padding:[3,5,3,5], letterSpacing:0,
+        },
+      },
+    }).setExtData(s);
   });
-  if(arr.length){
-    amap.setFitView(null,false,[60,60,60,60]);
+  labelsLayer=new AMap.LabelsLayer({collision:true,zIndex:300});
+  labelsLayer.add(lms);
+  amap.add(labelsLayer);
+  labelsLayer.on('click',e=>{
+    try{
+      const mk=e.data&&e.data.data&&e.data.data[0];
+      const s=mk&&mk.getExtData&&mk.getExtData();
+      if(s) showInfo(s);
+    }catch(err){}
+  });
+  if(state.near){
+    const n=state.near;
+    nearOverlay=[
+      new AMap.Circle({center:[n.lng,n.lat],radius:n.radius,strokeColor:'#c8102e',
+        strokeWeight:1.5,strokeOpacity:.8,fillColor:'#c8102e',fillOpacity:.05,zIndex:50}),
+      new AMap.Marker({position:[n.lng,n.lat],zIndex:400,
+        content:'<div class="pin-target">📍</div>'}),
+    ];
+    amap.add(nearOverlay);
   }
+  bboxFit(arr);
 }
+function showInfo(s){
+  const st=STATUS_META[s.status]||STATUS_META.unverified;
+  const tel=s.tel?`<div style="margin-top:2px">📞 ${esc(s.tel)}</div>`:'';
+  const d=s._d!=null?`<div style="margin-top:2px;color:#2563eb;font-weight:600">${fmtDist(s._d)}</div>`:'';
+  infoWin.setContent(`<div style="font-size:13px;max-width:230px">
+    <b>${esc(s.name)}</b><div style="color:#666;margin-top:2px">${esc(s.address||'')}</div>${tel}${d}
+    <div style="margin-top:2px;color:#999;font-size:11px">状态：${st.label}</div>
+    <a href="${navAmap(s)}" target="_blank" rel="noopener"
+       style="display:inline-block;margin-top:6px;background:#c8102e;color:#fff;border-radius:6px;padding:4px 12px;text-decoration:none;font-size:12px">🧭 导航</a>
+  </div>`);
+  infoWin.open(amap,[s.lng,s.lat]);
+}
+
+/* ================= 附近油站（地址 -> geocode -> 半径筛选） ================= */
+function renderRadiusChips(){
+  const cur=state.near?state.near.radius:3000;
+  $('#radiusChips').innerHTML=RADII.map(([v,l])=>`<button class="chip${cur===v?' on':''}" data-r="${v}">${l}</button>`).join('');
+  $('#radiusChips').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
+    if(state.near){ state.near.radius=+b.dataset.r; }
+    renderRadiusChips();
+    if(state.near){ apply(); } else { /* 未选地址时记住偏好 */ state._prefRadius=+b.dataset.r; }
+  });
+}
+async function ensureAMapLoaded(){
+  if(mapInited&&window.AMap) return;
+  if(!amapKeyOk()) throw new Error('地图密钥未配置，地址找附近暂不可用；可先使用“📍 最近优先”（基于手机定位）');
+  await loadAMap();
+}
+function geocode(addr){
+  return new Promise((res,rej)=>{
+    AMap.plugin('AMap.Geocoder',()=>{
+      new AMap.Geocoder({city:'广东省'}).getLocation(addr,(st,r)=>{
+        if(st==='complete'&&r.geocodes&&r.geocodes.length) res(r.geocodes[0].location);
+        else rej(new Error('未找到该地址，试试补全市/区，如“深圳市福田区香蜜湖”'));
+      });
+    });
+  });
+}
+$('#nearGo').onclick=async ()=>{
+  const btn=$('#nearGo'), addr=$('#nearAddr').value.trim();
+  if(!addr){alert('请先输入地址');return;}
+  btn.disabled=true; btn.textContent='解析中…';
+  try{
+    await ensureAMapLoaded();
+    const loc=await geocode(addr);
+    state.near={label:addr,lng:loc.lng,lat:loc.lat,radius:(state.near?state.near.radius:(state._prefRadius||3000))};
+    renderRadiusChips(); apply(); setView('map');
+  }catch(e){ alert(e.message); }
+  btn.disabled=false; btn.textContent='查找';
+};
+$('#nearAddr').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#nearGo').click(); });
+renderRadiusChips();
 </script>
 </body>
 </html>
