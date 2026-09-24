@@ -352,12 +352,21 @@ async function initMap(){
     mapFallback(`<b>地图加载失败</b><br><br>请检查 AMAP_KEY 是否为“Web端(JS API)”类型、安全密钥是否正确、以及是否已在高德控制台为本站域名配置白名单。<br><br>列表模式不受影响。`);
   }
 }
-/* 站名标签直显：LabelsLayer 海量标注，按状态着色 */
+/* 站名标签直显：LabelsLayer 海量标注（运行时 canvas 生成状态色圆点，任何缩放级别可见） */
 const LABEL_STYLE={
-  confirmed:{fill:'#0f7b38',bg:'#e7f6ec',border:'#9fd8b2'},
-  unverified:{fill:'#1d4ed8',bg:'#e8effc',border:'#a9c3ee'},
-  unlikely:{fill:'#6b7280',bg:'#f0f1f3',border:'#d4d9df'},
+  confirmed:{fill:'#0f7b38',bg:'#e7f6ec',border:'#9fd8b2',dot:'#16a34a'},
+  unverified:{fill:'#1d4ed8',bg:'#e8effc',border:'#a9c3ee',dot:'#2563eb'},
+  unlikely:{fill:'#6b7280',bg:'#f0f1f3',border:'#d4d9df',dot:'#9ca3af'},
 };
+function dotPNG(hex){
+  const c=document.createElement('canvas'); c.width=16; c.height=16;
+  const x=c.getContext('2d');
+  x.beginPath(); x.arc(8,8,5,0,Math.PI*2);
+  x.fillStyle=hex; x.fill();
+  x.lineWidth=2.5; x.strokeStyle='#ffffff'; x.stroke();
+  return c.toDataURL();
+}
+const DOT={confirmed:dotPNG(LABEL_STYLE.confirmed.dot),unverified:dotPNG(LABEL_STYLE.unverified.dot),unlikely:dotPNG(LABEL_STYLE.unlikely.dot)};
 function bboxFit(arr){
   if(!arr.length) return;
   let a=1e9,b=1e9,c=-1e9,d=-1e9;
@@ -377,9 +386,10 @@ function renderMapSync(){
     const st=LABEL_STYLE[s.status]||LABEL_STYLE.unverified;
     const mk=new AMap.LabelMarker({
       name:s.id, position:[s.lng,s.lat], rank:1,
+      icon:{image:DOT[s.status]||DOT.unverified, size:[16,16], anchor:[8,8]},
       text:{
         content:s.name.replace(/^中国石化/,''),
-        direction:'top', offset:[0,-6],
+        direction:'top', offset:[0,-8],
         style:{
           fillColor:st.fill, fontSize:11, strokeColor:'#ffffff', strokeWidth:2,
           backgroundColor:st.bg, borderColor:st.border, borderWidth:1,
@@ -412,6 +422,8 @@ function renderMapSync(){
   }
   bboxFit(arr);
 }
+/* 调试句柄（便于远程诊断地图状态） */
+window.__dbg={get layer(){return labelsLayer;},get inited(){return mapInited;},get map(){return amap;}};
 function showInfo(s){
   const st=STATUS_META[s.status]||STATUS_META.unverified;
   const tel=s.tel?`<div style="margin-top:2px">📞 ${esc(s.tel)}</div>`:'';
