@@ -375,7 +375,7 @@ function renderMapSync(){
   if(!arr.length) return;
   const lms=arr.map(s=>{
     const st=LABEL_STYLE[s.status]||LABEL_STYLE.unverified;
-    return new AMap.LabelMarker({
+    const mk=new AMap.LabelMarker({
       name:s.id, position:[s.lng,s.lat], rank:1,
       text:{
         content:s.name.replace(/^中国石化/,''),
@@ -386,7 +386,9 @@ function renderMapSync(){
           padding:[3,5,3,5], letterSpacing:0,
         },
       },
-    }).setExtData(s);
+    });
+    mk.setExtData(s);
+    return mk;
   });
   labelsLayer=new AMap.LabelsLayer({collision:true,zIndex:300});
   labelsLayer.add(lms);
