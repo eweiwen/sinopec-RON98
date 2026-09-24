@@ -1,6 +1,250 @@
 {
-  "B02F3066TT": {
-    "status": "unlikely",
-    "note": "用户人工核验：合资站，不参与爱跑98优惠活动（2026-09-24）"
-  }
+ "B02F3066TT": {
+  "status": "unlikely",
+  "note": "用户人工核验：合资站，不参与爱跑98优惠活动（2026-09-24）"
+ },
+ "B02F3006FE": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号1，福田·北环）"
+ },
+ "B02F302ABD": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号2，福田·深港）"
+ },
+ "B02F37T4YN": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号3，福田·滨源）"
+ },
+ "B02F37UBMM": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号4，福田·福田）"
+ },
+ "B02F300AC1": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号5，福田·上步）"
+ },
+ "B02F300893": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号6，福田·红荔）"
+ },
+ "B02F37UD2U": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号8，福田·皇岗高速）"
+ },
+ "B02F37UO0Y": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号9，福田·皇岗）"
+ },
+ "B02F38MEDJ": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号11，罗湖·爱国）"
+ },
+ "B02F37T4YG": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号12，罗湖·鹏吉源）"
+ },
+ "B02F37T4YU": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号13，罗湖·翠竹）"
+ },
+ "B02F37VATI": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号14，罗湖·标准）"
+ },
+ "B02F3002D2": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号15，罗湖·田贝）"
+ },
+ "B02F37VEFI": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号16，罗湖·莲塘）"
+ },
+ "B02F37VE6F": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号17，罗湖·东湖）"
+ },
+ "B0FFIZDOXX": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号18，罗湖·荣达）"
+ },
+ "B02F38JOV0": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号19，罗湖·坤达）"
+ },
+ "B0FFJD3UN7": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号20，南山·天诚东港）"
+ },
+ "B02F37UU34": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号21，南山·鹏南源）"
+ },
+ "B02F30251A": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号22，南山·南头）"
+ },
+ "B0FFFFYNPP": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号23，南山·中深前海）"
+ },
+ "B02F30ADKA": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号24，南山·兴港源）"
+ },
+ "B0FFF4FYQA": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号25，南山·科技园南）"
+ },
+ "B02F301DF3": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号26，南山·龙珠源）"
+ },
+ "B02F37VNCC": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号27，南山·西部通道第一）"
+ },
+ "B02F37UAG0": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号28，南山·西部通道第二）"
+ },
+ "B02F37VHTX": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号29，光明·石化公明）"
+ },
+ "B0JAC7ORMW": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号30，龙华·澜清）"
+ },
+ "B02F37U4WC": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号31，龙华·黎光东）"
+ },
+ "B02F30279A": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号32，龙华·胜龙）"
+ },
+ "B02F30279C": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号33，龙华·引进）"
+ },
+ "B02F37T4WQ": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号34，龙华·环观）"
+ },
+ "B02F37T4WI": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号35，龙华·观澜供销）"
+ },
+ "B0FFH986T7": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号36，龙华·南坪）"
+ },
+ "B0H60ZJAK6": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号37，龙华·梅龙）"
+ },
+ "B02F37T4WF": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号38，龙华·新动力）"
+ },
+ "B02F37V7IJ": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号39，龙华·龙军）"
+ },
+ "B02F37VHRA": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号40，龙华·市观澜）"
+ },
+ "B0FFG7IGHF": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号41，龙岗·布吉）"
+ },
+ "B02F37T4WT": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号42，龙岗·岗源）"
+ },
+ "B0FFIVQ1L8": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号43，龙岗·心润）"
+ },
+ "B02F37T4W8": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号44，龙岗·坪地）"
+ },
+ "B02F37T4XU": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号45，龙岗·布龙）"
+ },
+ "B02F37VNCA": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号46，龙岗·新龙洲）"
+ },
+ "B02F37VHIO": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号47，龙岗·辅成源）"
+ },
+ "B02F37T4XB": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号48，龙岗·裕彩龙）"
+ },
+ "B02F37T4X8": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号49，龙岗·高源）"
+ },
+ "B02F37T4XQ": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号50，龙岗·水径）"
+ },
+ "B0FFFEI4EN": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号51，宝安·宝华）"
+ },
+ "B02F37T4V6": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号52，宝安·西乡）"
+ },
+ "B0FFFWVC9X": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号53，宝安·沙井）"
+ },
+ "B02F3064NH": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号54，宝安·恒丰）"
+ },
+ "B0FFGFATB7": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号55，宝安·加德劲）"
+ },
+ "B02F37UU21": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号56，宝安·动力）"
+ },
+ "B02F37T4UG": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号57，宝安·威顺）"
+ },
+ "B02F37T4X9": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号59，坪山·松子坑）"
+ },
+ "B02F300285": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号60，坪山·沙鱼涌）"
+ },
+ "B02F37T4YD": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号61，大鹏·大鹏）"
+ },
+ "B02F3002F1": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号10，罗湖·深长二站）"
+ },
+ "B0FFLO2HS4": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号58，宝安·深油福永）"
+ },
+ "B02F37T4YJ": {
+  "status": "confirmed",
+  "note": "官方名单核验（中石化深圳分公司，序号7，福田·梅林）"
+ }
 }
