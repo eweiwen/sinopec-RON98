@@ -25,9 +25,9 @@ jobs:
           AMAP_KEY: ${{ secrets.AMAP_KEY }}
           AMAP_SECURITY_CODE: ${{ secrets.AMAP_SECURITY_CODE }}
         run: |
-          # 空 Secret 时注入空串，页面自动降级为列表模式，不影响部署
-          sed -i "s/__AMAP_KEY__/${AMAP_KEY}/g" assets/config.js
-          sed -i "s/__AMAP_SECURITY_CODE__/${AMAP_SECURITY_CODE}/g" assets/config.js
+          # 只替换值占位符（@@...@@），不触碰变量名；空 Secret 注入空串，页面自动降级
+          sed -i "s/@@AMAP_KEY@@/${AMAP_KEY}/g" assets/config.js
+          sed -i "s/@@AMAP_SECURITY_CODE@@/${AMAP_SECURITY_CODE}/g" assets/config.js
           grep -c "AMAP_KEY" assets/config.js || true
 
       - name: Upload artifact

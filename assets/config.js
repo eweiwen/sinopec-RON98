@@ -11,5 +11,5 @@
 // 本地调试：复制本文件为 config.local.js 并填入真实值，
 //   在 index.html 中把 config.js 的引用临时改为 config.local.js（切勿提交）。
 // ===================================================================
-window.__AMAP_KEY__ = "__AMAP_KEY__";
-window.__AMAP_SECURITY_CODE__ = "__AMAP_SECURITY_CODE__";
+window.__AMAP_KEY__ = "@@AMAP_KEY@@";
+window.__AMAP_SECURITY_CODE__ = "@@AMAP_SECURITY_CODE@@";
