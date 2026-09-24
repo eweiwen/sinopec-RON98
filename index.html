@@ -160,7 +160,7 @@ footer a{color:var(--info);text-decoration:none}
     <button class="btn-loc" id="btnLoc">📍 最近优先</button>
   </div>
   <div class="chips" id="cityChips"></div>
-  <div class="chips sub" id="statusChips"></div>
+  <!-- statusChips 已隐藏：前台仅展示 status='confirmed' 的官方核验站点 -->
   <div class="nearrow">
     <input id="nearAddr" type="search" placeholder="按地址找附近油站，如：福田区香蜜湖" autocomplete="off">
     <button class="go" id="nearGo">查找</button>
@@ -177,7 +177,7 @@ footer a{color:var(--info);text-decoration:none}
 
 <footer>
   <p><b>数据说明</b>：站点底表来自高德开放平台 POI（中国石化分类，GCJ-02 坐标），
-  覆盖深圳、珠海、广州、惠州、东莞、汕头、肇庆、深汕特别合作区，前台展示已核自营站 <span id="footTotal">—</span> 座（可通过筛选切换查看全部 1008 座候选点）。
+  覆盖深圳、珠海、广州、惠州、东莞、汕头、肇庆、深汕特别合作区；前台展示经中石化官方营销清单核验的自营站 <span id="footTotal">—</span> 座。候选池完整清单存档于 GitHub 仓库 <code>data/stations.json</code>（1008 座），仅供内部备查。
   首版站点均标记为“待核实”——是否<b>自营</b>、是否<b>销售爱跑98</b>，请以“易捷加油”APP 油品展示与现场为准；
   标记“疑似不参与”的站点名称含加盟/联营/特许特征。</p>
   <p>发现站点信息有误？<a id="issueLink" href="#" target="_blank" rel="noopener">提交反馈（GitHub Issue）</a>，我们会在下次数据更新时修正。</p>
@@ -215,10 +215,12 @@ function navTencent(s){
 
 /* ================= 数据加载 ================= */
 fetch('data/stations.json').then(r=>r.json()).then(d=>{
-  ALL=d.stations; META=d.meta;
+  // 前台仅展示 status='confirmed' 的官方核验站点；其他状态存档在 GitHub 备查，不在前台呈现
+  ALL=d.stations.filter(s=>s.status==='confirmed');
+  META=d.meta;
   const cb = META.counts_by_status || {};
-  const confirmedN = cb.confirmed || 0;
-  $('#heroSub').innerHTML=`数据更新 <b>${esc(META.updated)}</b> · 已核自营站 <b>${confirmedN}</b> 座 · 覆盖 ${Object.keys(META.counts).length} 个区域`;
+  const confirmedN = ALL.length;
+  $('#heroSub').innerHTML=`数据更新 <b>${esc(META.updated)}</b> · 官方核验自营站 <b>${confirmedN}</b> 座`;
   $('#footTotal').textContent=confirmedN;
   const il=$('#issueLink');
   il.href='https://github.com/eweiwen/sinopec-RON98/issues/new?title='+encodeURIComponent('站点信息纠错');
@@ -254,10 +256,6 @@ function renderChips(){
   const cities=['全部',...Object.keys(counts)];
   cc.innerHTML=cities.map(c=>`<button class="chip${state.city===c?' on':''}" data-c="${esc(c)}">${esc(c)}<span class="n">${c==='全部'?ALL.length:counts[c]}</span></button>`).join('');
   cc.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{state.city=b.dataset.c;renderChips();apply();});
-  const sc=$('#statusChips');
-  const opts=[['all','全部状态'],...Object.entries(STATUS_META).map(([k,v])=>[k,v.label])];
-  sc.innerHTML=opts.map(([k,l])=>`<button class="chip${state.status===k?' on':''}" data-s="${k}">${l}</button>`).join('');
-  sc.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{state.status=b.dataset.s;renderChips();apply();});
 }
 
 /* ================= 列表 ================= */
