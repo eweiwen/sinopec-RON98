@@ -177,7 +177,7 @@ footer a{color:var(--info);text-decoration:none}
 
 <footer>
   <p><b>数据说明</b>：站点底表来自高德开放平台 POI（中国石化分类，GCJ-02 坐标），
-  覆盖深圳、珠海、广州、惠州、东莞、汕头、肇庆、深汕特别合作区，共 <span id="footTotal">—</span> 座。
+  覆盖深圳、珠海、广州、惠州、东莞、汕头、肇庆、深汕特别合作区，前台展示已核自营站 <span id="footTotal">—</span> 座（可通过筛选切换查看全部 1008 座候选点）。
   首版站点均标记为“待核实”——是否<b>自营</b>、是否<b>销售爱跑98</b>，请以“易捷加油”APP 油品展示与现场为准；
   标记“疑似不参与”的站点名称含加盟/联营/特许特征。</p>
   <p>发现站点信息有误？<a id="issueLink" href="#" target="_blank" rel="noopener">提交反馈（GitHub Issue）</a>，我们会在下次数据更新时修正。</p>
@@ -193,7 +193,7 @@ const STATUS_META = {
 };
 const PAGE = 50;
 const RADII = [[1000,'1km'],[3000,'3km'],[5000,'5km'],[10000,'10km']];
-const state = {city:'全部', status:'all', q:'', view:'list', coords:null, page:1, near:null};
+const state = {city:'全部', status:'confirmed', q:'', view:'list', coords:null, page:1, near:null};
 let ALL = [], META = null;
 
 /* ================= 工具 ================= */
@@ -216,8 +216,10 @@ function navTencent(s){
 /* ================= 数据加载 ================= */
 fetch('data/stations.json').then(r=>r.json()).then(d=>{
   ALL=d.stations; META=d.meta;
-  $('#heroSub').innerHTML=`数据更新 <b>${esc(META.updated)}</b> · 覆盖 ${Object.keys(META.counts).length} 个区域 · 共 <b>${META.total}</b> 座中石化站点`;
-  $('#footTotal').textContent=META.total;
+  const cb = META.counts_by_status || {};
+  const confirmedN = cb.confirmed || 0;
+  $('#heroSub').innerHTML=`数据更新 <b>${esc(META.updated)}</b> · 已核自营站 <b>${confirmedN}</b> 座 · 覆盖 ${Object.keys(META.counts).length} 个区域`;
+  $('#footTotal').textContent=confirmedN;
   const il=$('#issueLink');
   il.href='https://github.com/eweiwen/sinopec-RON98/issues/new?title='+encodeURIComponent('站点信息纠错');
   renderChips(); apply();

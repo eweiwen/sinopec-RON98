@@ -1,55 +1,58 @@
 # -*- coding: utf-8 -*-
 """
 将「中石化加油卡网上营业厅·加油站网点查询」的广东官方名单
-与高德 POI 抓取的 1008 座站点做三级匹配：
-  1) 电话精确匹配（最强）
-  2) 站名短名匹配（中等）
-  3) 地址模糊匹配（辅助）
+与高德 POI 抓取的 1008 座站点做三级匹配。
+
+策略（2026-09-24 收窄后）：
+  - 售卡站匹配结果**只作为后台交叉核查字段**（has_card_network 等），
+    不再自动把 status 升级为 confirmed。
+  - status 唯一由用户人工核验驱动：
+      * confirmed —— 仅当该站在 manual_overrides.json 中被用户按"官方名单核验"标记；
+      * unlikely  —— 用户人工标记不参与，或名称/地址含明确合资特征；
+      * unverified —— 其他所有站点（含售卡站匹配成功但未人工核实的）。
+  - 工作台前台仅展示 confirmed（默认 filter=all，用户按需查看其他状态）。
 
 产出：
-  data/stations.json  每座站增加：
-    - official_verified: bool
-    - official_source: "phone" | "name" | "address" | ""
-    - official_station_name, official_address, official_phone: 官方字段回填
-    - status: confirmed/unverified/unlikely（保留原人工标记优先级）
+  data/stations.json  每座站新增/更新字段：
+    - has_card_network: bool  是否命中售卡站自动匹配（后台核查字段）
+    - card_network_match_method: phone | name_exact | addr(NN) | ""
+    - official_station_name / official_address / official_phone  官方字段回填
   data/match_report.txt  匹配诊断报告
 """
 import json
 import re
 import sys
-from pathlib import Path
+from collections import Counter
 from difflib import SequenceMatcher
+from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 
-AMAP_PREFIX_RE = re.compile(r"^(中国石化|中国石油化工|中石化|中石化)\s*")
-AMAP_SUFFIX_RE = re.compile(r"(加油加气站|加气加油站|加油站|加气站|充电站|服务[区站]|加油站|站点)$")
+AMAP_PREFIX_RE = re.compile(r"^(中国石化|中国石油化工|中石化)\s*")
+AMAP_SUFFIX_RE = re.compile(r"(加油加气站|加气加油站|加油站|加气站|充电站|服务[区站]|站点)$")
 
-# 广东地名前缀，用于地址归一化
 CITY_PREFIX = ("广东省", "广州市", "深圳市", "珠海市", "惠州市", "东莞市", "中山市",
                "汕头市", "肇庆市", "汕尾市", "江门市", "佛山市", "湛江市", "清远市",
                "河源市", "梅州市", "潮州市", "揭阳市", "云浮市", "韶关市", "茂名市",
-               "潮州市", "河源市", "茂名市", "阳江市", "清远市", "云浮市", "中山市")
-DISTRICT_WORDS = re.compile(r"(市|区|县|镇|乡|街道)\s*")
+               "阳江市")
+
+JV_MARKERS = ["碧辟", "联合石油", "中化", "联营", "合资", "壳牌", "中油碧辟"]
 
 
 def normalize_phone(p: str) -> str:
-    """只留数字"""
     return re.sub(r"[^\d]", "", p or "")
 
 
 def short_name_from_amap(name: str) -> str:
-    """从 '中国石化光明加油站' 提取 '光明'"""
-    n = AMAP_PREFIX_RE.sub("", name).strip()
+    n = AMAP_PREFIX_RE.sub("", name or "").strip()
     n = AMAP_SUFFIX_RE.sub("", n).strip()
     return n
 
 
 def norm_addr(a: str) -> str:
-    """去省市前缀、去空白，便于比较"""
     s = (a or "").strip()
     for p in CITY_PREFIX:
         if s.startswith(p):
@@ -60,31 +63,23 @@ def norm_addr(a: str) -> str:
 
 
 def addr_similarity(a: str, b: str) -> float:
-    """两个归一化地址的相似比"""
     return SequenceMatcher(None, a, b).ratio()
 
 
-def find_match(poi: dict, officials: list) -> tuple[dict | None, str]:
-    """
-    为高德 POI 在官方名单里找匹配。
-    返回 (matched_official_record, match_method)。
-    """
+def find_match(poi: dict, officials: list):
     poi_phone = normalize_phone(poi.get("tel", ""))
     poi_short = short_name_from_amap(poi.get("name", ""))
     poi_addr = norm_addr(poi.get("address", ""))
 
-    # 1) 电话精确匹配
     if poi_phone and len(poi_phone) >= 8:
         for o in officials:
             if normalize_phone(o.get("phone", "")) == poi_phone:
                 return o, "phone"
 
-    # 2) 站名短名精确匹配（POI 短名 == 官方 name 或 官方 name 以 POI 短名开头）
     if poi_short and len(poi_short) >= 2:
-        exact_hits = []
-        prefix_hits = []
+        exact_hits, prefix_hits = [], []
         for o in officials:
-            on = o.get("name", "").strip()
+            on = (o.get("name") or "").strip()
             if on == poi_short:
                 exact_hits.append(o)
             elif on.startswith(poi_short) or on.endswith(poi_short):
@@ -92,7 +87,6 @@ def find_match(poi: dict, officials: list) -> tuple[dict | None, str]:
         if len(exact_hits) == 1:
             return exact_hits[0], "name_exact"
         if len(exact_hits) > 1:
-            # 多候选：用地址辅助
             for o in exact_hits:
                 if addr_similarity(norm_addr(o.get("address", "")), poi_addr) > 0.5:
                     return o, "name_exact+addr"
@@ -100,13 +94,11 @@ def find_match(poi: dict, officials: list) -> tuple[dict | None, str]:
         if len(prefix_hits) == 1:
             return prefix_hits[0], "name_prefix"
 
-    # 3) 地址模糊匹配（≥0.85 视为同一站）
     best, best_score = None, 0.0
     for o in officials:
         s = addr_similarity(norm_addr(o.get("address", "")), poi_addr)
         if s > best_score:
-            best_score = s
-            best = o
+            best_score, best = s, o
     if best and best_score >= 0.85:
         return best, f"addr({best_score:.2f})"
 
@@ -114,40 +106,38 @@ def find_match(poi: dict, officials: list) -> tuple[dict | None, str]:
 
 
 def main():
-    sys.exit(__run())
-
-
-def __run() -> int:
     stations_doc = json.loads((DATA / "stations.json").read_text(encoding="utf-8"))
     officials_doc = json.loads((DATA / "sinopec_official_44.json").read_text(encoding="utf-8"))
+    overrides = json.loads((DATA / "manual_overrides.json").read_text(encoding="utf-8")) \
+        if (DATA / "manual_overrides.json").exists() else {}
 
     stations = stations_doc["stations"]
     officials = officials_doc["stations"]
-    print(f"[Load] Amap POI: {len(stations)} 座；官方名单: {len(officials)} 座")
+    print(f"[Load] POI: {len(stations)} 座；官方售卡名单: {len(officials)} 座；"
+          f"manual_overrides: {len(overrides)} 条")
 
-    # 索引：官方侧
-    by_phone = {}
-    for o in officials:
-        p = normalize_phone(o.get("phone", ""))
-        if p:
-            by_phone.setdefault(p, []).append(o)
+    # 提取用户按"官方名单核验"标记的白名单 ID（唯一 confirmed 来源）
+    whitelist = set(pid for pid, v in overrides.items()
+                    if v.get("status") == "confirmed")
+    unlikely_ids = set(pid for pid, v in overrides.items()
+                       if v.get("status") == "unlikely")
+    print(f"[Whitelist] 官方名单核验 confirmed: {len(whitelist)} 座；"
+          f"用户标记 unlikely: {len(unlikely_ids)} 座")
 
-    # JV / 加盟 特征关键词（名称或地址命中即降级）
-    JV_MARKERS = ["碧辟", "联合石油", "中化", "联营", "合资", "壳牌", "中油碧辟"]
-
-    # 逐站匹配
-    stats = {"matched": 0, "unmatched": 0, "by_phone": 0, "by_name_exact": 0,
-             "by_name_exact_multi": 0, "by_name_prefix": 0, "by_addr": 0,
-             "upgraded_to_confirmed": 0, "kept_confirmed_user": 0,
-             "kept_unlikely_user": 0, "kept_unverified": 0,
-             "downgraded_jv_marker": 0}
+    stats = {"matched": 0, "unmatched": 0,
+             "by_phone": 0, "by_name_exact": 0, "by_name_prefix": 0, "by_addr": 0,
+             "confirmed_from_whitelist": 0,
+             "kept_unlikely_user": 0, "downgraded_jv_marker": 0,
+             "kept_unverified": 0}
 
     for s in stations:
-        prev_status = s.get("status", "unverified")
+        sid = s["id"]
         o, method = find_match(s, officials)
+
+        # ---- 售卡站字段（后台核查用，不影响 status） ----
         if o:
-            s["official_verified"] = True
-            s["official_source"] = method
+            s["has_card_network"] = True
+            s["card_network_match_method"] = method
             s["official_station_name"] = o.get("name", "")
             s["official_address"] = o.get("address", "")
             s["official_phone"] = o.get("phone", "")
@@ -156,100 +146,85 @@ def __run() -> int:
                 stats["by_phone"] += 1
             elif method.startswith("name_exact"):
                 stats["by_name_exact"] += 1
-                if "multi" in method:
-                    stats["by_name_exact_multi"] += 1
             elif method == "name_prefix":
                 stats["by_name_prefix"] += 1
             elif method.startswith("addr"):
                 stats["by_addr"] += 1
-            # 状态：官方命中 → confirmed（人工核验的 unlikely 例外保留）
-            if prev_status == "unlikely":
-                s["status"] = "unlikely"      # 人工判定优先
-                s["hint"] = "用户人工标记：不参与。虽在官方售卡网名单内，但业务口径不参与爱跑98。"
-                stats["kept_unlikely_user"] += 1
-            else:
-                s["status"] = "confirmed"
-                if prev_status == "unverified":
-                    stats["upgraded_to_confirmed"] += 1
-                else:
-                    stats["kept_confirmed_user"] += 1
         else:
-            s["official_verified"] = False
-            s["official_source"] = ""
+            s["has_card_network"] = False
+            s["card_network_match_method"] = ""
             s["official_station_name"] = ""
             s["official_address"] = ""
             s["official_phone"] = ""
             stats["unmatched"] += 1
-            # 官方名单未收录 → 但加油卡网点查询只是"售卡站"子集，不等于非自营
-            if prev_status == "confirmed":
-                # 用户人工核验过（如南坪），保留 confirmed 但标注
-                s["hint"] = "用户人工核验确认参与活动；但未在中石化官方售卡网名单内（可能不在售卡网络或数据源缺口）。"
-                stats["kept_confirmed_user"] += 1
-            elif prev_status == "unlikely":
-                # 用户人工标记不参与，保留
-                stats["kept_unlikely_user"] += 1
-            elif any(m in s.get("name", "") or m in s.get("address", "") for m in JV_MARKERS):
-                # 名称/地址明显合资特征 → 降级
-                s["status"] = "unlikely"
-                s["hint"] = f"名称/地址含合资特征（如碧辟/联合/联营），未收录于官方售卡网。"
-                stats["downgraded_jv_marker"] += 1
+
+        # ---- status 由白名单/用户标记驱动，售卡站匹配不升级 ----
+        if sid in whitelist:
+            s["status"] = "confirmed"
+            s["hint"] = "官方名单核验：中石化深圳分公司官方名单确认，参与爱跑98优惠。"
+            stats["confirmed_from_whitelist"] += 1
+        elif sid in unlikely_ids:
+            s["status"] = "unlikely"
+            s["hint"] = overrides[sid].get("note", "用户人工标记不参与")
+            stats["kept_unlikely_user"] += 1
+        elif any(m in s.get("name", "") or m in s.get("address", "") for m in JV_MARKERS):
+            s["status"] = "unlikely"
+            s["hint"] = "名称/地址含合资特征（碧辟/联合/联营等），活动限自营站。"
+            stats["downgraded_jv_marker"] += 1
+        else:
+            s["status"] = "unverified"
+            if s["has_card_network"]:
+                s["hint"] = "售卡站自动匹配成功（后台交叉核查用）；尚未人工核实是否有爱跑98。"
             else:
-                # 保留 unverified，但明确记录未命中原因
-                s["status"] = "unverified"
-                s["hint"] = "未收录于中石化官方加油卡售卡网点名单，可能不在售卡网络；也可能是真实自营但数据源未覆盖。"
-                stats["kept_unverified"] += 1
+                s["hint"] = "未在售卡站自动匹配中命中；爱跑98销售情况待人工核实。"
+            stats["kept_unverified"] += 1
 
-    # 写入
-    stations_doc["meta"]["official_source"] = "sinopecsales.com 加油站网点查询（广东全省售卡站）"
+    # ---- 更新 meta ----
+    c = Counter(s["status"] for s in stations)
     stations_doc["meta"]["updated"] = "2026-09-24"
-    (DATA / "stations.json").write_text(
-        json.dumps(stations_doc, ensure_ascii=False, indent=2), encoding="utf-8")
+    stations_doc["meta"]["statusMeaning"] = {
+        "confirmed": "已核实：官方名单核验参与爱跑98优惠的自营站",
+        "unverified": "待核实：中石化站点（售卡站字段仅供后台交叉核查，不改变状态）",
+        "unlikely": "疑似不参与：名称含合资特征或用户人工标记不参与",
+    }
+    stations_doc["meta"]["note"] = ("前台仅展示 confirmed（默认）；其余状态可在筛选里查看。"
+                                    "售卡站数据保留在 has_card_network 字段，供后续交叉核查。")
+    stations_doc["meta"]["counts_by_status"] = dict(c)
+    stations_doc["meta"]["official_source"] = "sinopecsales.com 加油站网点查询（广东全省售卡站，仅后台核查用）"
+    stations_doc["meta"]["confirmed_source"] = "data/manual_overrides.json（中石化深圳分公司官方名单核验，61 座）"
 
-    # 报告
+    (DATA / "stations.json").write_text(
+        json.dumps(stations_doc, ensure_ascii=False, indent=1), encoding="utf-8")
+
+    # ---- 报告 ----
     lines = [
-        f"=== 官方名单匹配报告 ===",
-        f"Amap POI 站点: {len(stations)}",
-        f"官方名单站点: {len(officials)}",
-        f"",
-        f"匹配结果:",
-        f"  命中官方名单:   {stats['matched']:>4} 座 ({stats['matched']/len(stations)*100:.1f}%)",
-        f"    ├─ 电话精确匹配:          {stats['by_phone']:>4}",
-        f"    ├─ 站名精确匹配:          {stats['by_name_exact']:>4}  (多候选 {stats['by_name_exact_multi']})",
-        f"    ├─ 站名前后缀匹配:        {stats['by_name_prefix']:>4}",
-        f"    └─ 地址模糊匹配:          {stats['by_addr']:>4}",
-        f"  未命中:            {stats['unmatched']:>4} 座 ({stats['unmatched']/len(stations)*100:.1f}%)",
-        f"",
-        f"状态变更（用户人工标记优先级最高）:",
-        f"  unverified → confirmed (官方命中):     {stats['upgraded_to_confirmed']:>4}",
-        f"  confirmed 保持 (用户人工核验):        {stats['kept_confirmed_user']:>4}",
-        f"  unlikely 保持 (用户人工标记):        {stats['kept_unlikely_user']:>4}",
-        f"  unverified 保留 (未命中但无合资特征): {stats['kept_unverified']:>4}",
-        f"  降级为 unlikely (含合资特征):         {stats['downgraded_jv_marker']:>4}",
+        "=== 收窄后匹配报告 ===",
+        f"POI 站点: {len(stations)}",
+        f"售卡站名单: {len(officials)}",
+        "",
+        "售卡站自动匹配（仅写入后台字段，不改 status）:",
+        f"  命中售卡站:  {stats['matched']:>4} 座  "
+        f"(phone {stats['by_phone']} / name {stats['by_name_exact']} / "
+        f"prefix {stats['by_name_prefix']} / addr {stats['by_addr']})",
+        f"  未命中:      {stats['unmatched']:>4} 座",
+        "",
+        "status 分布（唯一来源：manual_overrides.json 白名单）:",
+        f"  confirmed（白名单官方核验）:   {stats['confirmed_from_whitelist']:>4}",
+        f"  unlikely（用户人工标记）:       {stats['kept_unlikely_user']:>4}",
+        f"  unlikely（名称/地址含合资特征）:{stats['downgraded_jv_marker']:>4}",
+        f"  unverified（默认）:             {stats['kept_unverified']:>4}",
     ]
     report = "\n".join(lines)
     (DATA / "match_report.txt").write_text(report, encoding="utf-8")
     print("\n" + report)
+    print(f"\n最终 status 分布: {dict(c)}")
 
-    # 状态分布
-    from collections import Counter
-    c = Counter(s["status"] for s in stations)
-    print(f"\n状态分布: {dict(c)}")
-    by_city = {}
-    for s in stations:
-        city = s.get("city", "?")
-        by_city.setdefault(city, Counter())[s["status"]] += 1
-    print("\n按城市分布:")
-    for city, cnt in sorted(by_city.items(), key=lambda x: -sum(x[1].values())):
-        print(f"  {city}: {dict(cnt)}")
-
-    # 关键校验：彩田（用户确认是合资不参与）应该在 unmatched 里
+    # 关键校验
     print("\n关键校验：")
     for s in stations:
-        if "彩田" in s.get("name", ""):
-            print(f"  [{s['city']}] {s['name']} -> status={s['status']}, official_verified={s['official_verified']}, hint={s.get('hint','')}")
-        if "南坪" in s.get("name", ""):
-            print(f"  [{s['city']}] {s['name']} -> status={s['status']}, official_verified={s['official_verified']}")
-
+        n = s.get("name", "")
+        if "彩田" in n or "南坪" in n:
+            print(f"  {n} | status={s['status']} | has_card_network={s.get('has_card_network')}")
     return 0
 
 
