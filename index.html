@@ -341,7 +341,8 @@ function loadAMap(){
     const sc=window.__AMAP_SECURITY_CODE__;
     if(sc && !String(sc).includes('@@')) window._AMapSecurityConfig={securityJsCode:sc};
     const s=document.createElement('script');
-    s.src='https://webapi.amap.com/maps?v=2.0&key='+window.__AMAP_KEY__;
+    /* LabelsLayer(海量站名标签)/Geocoder(地址解析) 为 2.0 独立插件，必须显式加载 */
+    s.src='https://webapi.amap.com/maps?v=2.0&key='+window.__AMAP_KEY__+'&plugin=AMap.LabelsLayer,AMap.Geocoder';
     s.onload=res; s.onerror=()=>rej(new Error('load-fail'));
     document.head.appendChild(s);
   });
