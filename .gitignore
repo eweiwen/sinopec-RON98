@@ -4,3 +4,5 @@ scripts/.amap_key
 # 中间数据（可由脚本重新抓取，最终数据 stations.json 保留入库）
 data/raw_pois.json
 data/raw_aipao_hits.json
+_*.png
+_test*.html
