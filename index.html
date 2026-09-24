@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="广东中石化爱跑98适用油站查询工作台：自营站筛选、距离排序、一键导航。数据仅供参考，以易捷加油APP及现场为准。">
+<title>爱跑98适用油站 · 广东工作台</title>
+<script src="assets/config.js"></script>
+<style>
+:root{
+  --brand:#c8102e; --brand-dark:#9e0c24;
+  --ok:#16a34a; --info:#2563eb; --off:#9ca3af;
+  --bg:#f4f6f8; --card:#ffffff; --line:#e5e9ee;
+  --txt:#1f2733; --txt2:#5b6672; --chip:#eef1f5;
+  --radius:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;}
+body{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+
+/* ---------- 头部 ---------- */
+.hero{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);
+  color:#fff;padding:18px 16px 46px;}
+.hero h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.5px}
+.hero .sub{margin-top:6px;font-size:12.5px;opacity:.92}
+.hero .sub b{font-weight:600}
+.wrap{max-width:720px;margin:0 auto;padding:0 12px}
+
+/* ---------- 活动卡 ---------- */
+.activity{background:var(--card);border-radius:var(--radius);margin:-32px 12px 10px;
+  box-shadow:0 4px 16px rgba(0,0,0,.08);overflow:hidden;max-width:696px}
+.activity summary{list-style:none;cursor:pointer;padding:12px 14px;font-size:14px;font-weight:600;
+  display:flex;align-items:center;gap:8px}
+.activity summary::-webkit-details-marker{display:none}
+.activity summary .arrow{margin-left:auto;transition:transform .2s;color:var(--txt2)}
+.activity[open] summary .arrow{transform:rotate(180deg)}
+.activity .body{padding:0 14px 12px;font-size:13px;color:var(--txt2)}
+.activity .body p{margin:6px 0}
+.activity .body b{color:var(--txt)}
+
+/* ---------- 工具栏 ---------- */
+.toolbar{position:sticky;top:0;z-index:50;background:var(--bg);
+  padding:8px 12px 6px;border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:8px;margin-bottom:8px}
+.tabs button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:10px;
+  padding:8px 0;font-size:14px;font-weight:600;color:var(--txt2)}
+.tabs button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.searchrow{display:flex;gap:8px;margin-bottom:8px}
+.searchrow .box{flex:1;position:relative}
+.searchrow input{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--card);
+  padding:9px 32px 9px 12px;font-size:14px;outline:none;color:var(--txt)}
+.searchrow input:focus{border-color:var(--brand)}
+.searchrow .clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  border:0;background:none;color:var(--txt2);font-size:16px;padding:4px;display:none}
+.btn-loc{border:0;background:var(--info);color:#fff;border-radius:10px;padding:0 14px;
+  font-size:13px;font-weight:600;display:flex;align-items:center;gap:4px}
+.btn-loc.using{background:#1d4ed8}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;
+  padding:5px 12px;font-size:13px;color:var(--txt2)}
+.chip.on{background:#fdeceb;border-color:var(--brand);color:var(--brand);font-weight:600}
+.chip .n{font-size:11px;opacity:.75;margin-left:2px}
+.chips.sub{margin-top:4px}
+
+/* ---------- 计数条 ---------- */
+.countbar{max-width:720px;margin:0 auto;padding:10px 14px 0;font-size:12.5px;color:var(--txt2);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.countbar b{color:var(--brand)}
+.dist-tip{color:var(--info)}
+
+/* ---------- 列表 ---------- */
+.list{max-width:720px;margin:0 auto;padding:10px 12px;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border-radius:var(--radius);padding:12px 14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.card .r1{display:flex;align-items:flex-start;gap:8px}
+.card .name{font-size:15.5px;font-weight:700;flex:1;line-height:1.35}
+.badge{flex:none;font-size:11px;font-weight:600;border-radius:6px;padding:2px 7px;margin-top:1px}
+.badge.ok{background:#e7f6ec;color:var(--ok)}
+.badge.info{background:#e8effc;color:var(--info)}
+.badge.off{background:#f0f1f3;color:#6b7280}
+.card .r2{margin-top:5px;font-size:13px;color:var(--txt2)}
+.card .r2 .dist{color:var(--info);font-weight:600;margin-right:6px}
+.card .r3{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.abtn{flex:1;min-width:88px;text-align:center;border-radius:9px;padding:8px 0;font-size:13.5px;
+  font-weight:600;text-decoration:none;border:1px solid var(--line);background:var(--card);color:var(--txt)}
+.abtn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.abtn.tel{background:#f0fdf4;border-color:#bbf7d0;color:var(--ok)}
+.remark{margin-top:6px;font-size:12px;color:#b45309}
+.more{display:block;margin:14px auto 0;border:1px solid var(--line);background:var(--card);
+  border-radius:999px;padding:9px 26px;font-size:13.5px;color:var(--txt2)}
+
+/* ---------- 地图 ---------- */
+.mapwrap{max-width:720px;margin:0 auto;padding:10px 12px}
+#map{width:100%;height:calc(100vh - 300px);min-height:420px;border-radius:var(--radius);
+  background:#e8edf2}
+.map-fallback{max-width:720px;margin:0 auto;padding:40px 20px;text-align:center;color:var(--txt2);
+  font-size:14px;background:var(--card);border-radius:var(--radius)}
+.map-fallback b{color:var(--brand)}
+
+/* ---------- 底部 ---------- */
+footer{max-width:720px;margin:18px auto 0;padding:14px 16px;font-size:12px;color:#8b95a1;line-height:1.7}
+footer a{color:var(--info);text-decoration:none}
+.empty{text-align:center;color:var(--txt2);padding:40px 0;font-size:14px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>⛽ 爱跑98适用油站 · 广东</h1>
+    <div class="sub" id="heroSub">加载中…</div>
+  </div>
+</header>
+
+<details class="activity" open>
+  <summary>🎯 活动口径速览<span class="arrow">▾</span></summary>
+  <div class="body">
+    <p><b>爱跑98付费会员（广东个人单卡）</b>：半年卡 199 元 / 一年卡 388 元 / 两年卡 588 元。购卡后于<b>广东省中石化自营加油站</b>加注爱跑98#汽油享 <b>2 元/升</b>优惠（约等于 98# 与 95# 同价），95# 同步享 0.2 元/升立减。</p>
+    <p><b>重装骑士卡（摩托）</b>：98 元/年，爱跑98 享 2 元/升（单次上限 15 升、单天 1 次、单月 25 升）。</p>
+    <p>⚠️ 权益规则、适用站点范围以<b>中国石化官方公告及“易捷加油”APP 现场展示</b>为准。</p>
+  </div>
+</details>
+
+<div class="toolbar">
+  <div class="tabs">
+    <button id="tabList" class="on">📋 列表</button>
+    <button id="tabMap">🗺️ 地图</button>
+  </div>
+  <div class="searchrow">
+    <div class="box">
+      <input id="q" type="search" placeholder="搜索站名 / 地址 / 区县" autocomplete="off">
+      <button class="clear" id="qClear">×</button>
+    </div>
+    <button class="btn-loc" id="btnLoc">📍 最近优先</button>
+  </div>
+  <div class="chips" id="cityChips"></div>
+  <div class="chips sub" id="statusChips"></div>
+</div>
+
+<div class="countbar" id="countbar"></div>
+<div class="list" id="list"></div>
+<div class="mapwrap" id="mapwrap" style="display:none">
+  <div id="map"></div>
+</div>
+<div class="map-fallback" id="mapFallback" style="display:none"></div>
+
+<footer>
+  <p><b>数据说明</b>：站点底表来自高德开放平台 POI（中国石化分类，GCJ-02 坐标），
+  覆盖深圳、珠海、广州、惠州、东莞、汕头、肇庆、深汕特别合作区，共 <span id="footTotal">—</span> 座。
+  首版站点均标记为“待核实”——是否<b>自营</b>、是否<b>销售爱跑98</b>，请以“易捷加油”APP 油品展示与现场为准；
+  标记“疑似不参与”的站点名称含加盟/联营/特许特征。</p>
+  <p>发现站点信息有误？<a id="issueLink" href="#" target="_blank" rel="noopener">提交反馈（GitHub Issue）</a>，我们会在下次数据更新时修正。</p>
+  <p>本页为非官方个人工具，与中石化无隶属关系；不收集任何个人位置数据（定位仅在本机浏览器内计算距离）。</p>
+</footer>
+
+<script>
+/* ================= 常量与状态 ================= */
+const STATUS_META = {
+  confirmed:  {label:'已核实', cls:'ok'},
+  unverified: {label:'待核实', cls:'info'},
+  unlikely:   {label:'疑似不参与', cls:'off'},
+};
+const PAGE = 50;
+const state = {city:'全部', status:'all', q:'', view:'list', coords:null, page:1};
+let ALL = [], META = null;
+
+/* ================= 工具 ================= */
+const $ = s => document.querySelector(s);
+function esc(s){return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function hav(lat1,lng1,lat2,lng2){
+  const R=6371, d=Math.PI/180;
+  const a=Math.sin((lat2-lat1)*d/2)**2+Math.cos(lat1*d)*Math.cos(lat2*d)*Math.sin((lng2-lng1)*d/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+function navAmap(s){
+  const to=`${s.lng},${s.lat},${encodeURIComponent(s.name)}`;
+  return `https://uri.amap.com/navigation?to=${to}&mode=car&src=sinopec-ron98&coordinate=gaode&callnative=1`;
+}
+function navTencent(s){
+  return `https://apis.map.qq.com/uri/v1/routeplan?to=${encodeURIComponent(s.name)}&coord=${s.lat},${s.lng}&mode=driving&referer=sinopec-ron98`;
+}
+
+/* ================= 数据加载 ================= */
+fetch('data/stations.json').then(r=>r.json()).then(d=>{
+  ALL=d.stations; META=d.meta;
+  $('#heroSub').innerHTML=`数据更新 <b>${esc(META.updated)}</b> · 覆盖 ${Object.keys(META.counts).length} 个区域 · 共 <b>${META.total}</b> 座中石化站点`;
+  $('#footTotal').textContent=META.total;
+  const il=$('#issueLink');
+  il.href='https://github.com/eweiwen/sinopec-RON98/issues/new?title='+encodeURIComponent('站点信息纠错');
+  renderChips(); apply();
+}).catch(()=>{ $('#heroSub').textContent='数据加载失败，请刷新重试'; });
+
+/* ================= 筛选链 ================= */
+function filtered(){
+  const q=state.q.trim().toLowerCase();
+  let arr=ALL.filter(s=>{
+    if(state.city!=='全部'&&s.city!==state.city) return false;
+    if(state.status!=='all'&&s.status!==state.status) return false;
+    if(q && !(s.name.toLowerCase().includes(q)||s.address.toLowerCase().includes(q)||s.district.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  if(state.coords){
+    const [la,ln]=state.coords;
+    arr=arr.map(s=>({...s,_d:hav(la,ln,s.lat,s.lng)})).sort((a,b)=>a._d-b._d);
+  }
+  return arr;
+}
+function apply(){ state.page=1; renderList(); renderCount(); renderMapSync(); }
+
+/* ================= chips ================= */
+function renderChips(){
+  const cc=$('#cityChips');
+  const counts={}; ALL.forEach(s=>counts[s.city]=(counts[s.city]||0)+1);
+  const cities=['全部',...Object.keys(counts)];
+  cc.innerHTML=cities.map(c=>`<button class="chip${state.city===c?' on':''}" data-c="${esc(c)}">${esc(c)}<span class="n">${c==='全部'?ALL.length:counts[c]}</span></button>`).join('');
+  cc.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{state.city=b.dataset.c;renderChips();apply();});
+  const sc=$('#statusChips');
+  const opts=[['all','全部状态'],...Object.entries(STATUS_META).map(([k,v])=>[k,v.label])];
+  sc.innerHTML=opts.map(([k,l])=>`<button class="chip${state.status===k?' on':''}" data-s="${k}">${l}</button>`).join('');
+  sc.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{state.status=b.dataset.s;renderChips();apply();});
+}
+
+/* ================= 列表 ================= */
+function renderList(){
+  const arr=filtered(), list=$('#list');
+  const show=arr.slice(0,state.page*PAGE);
+  list.style.display = state.view==='list'?'flex':'none';
+  if(!show.length){
+    list.innerHTML='<div class="empty">没有符合条件的站点</div>'; return;
+  }
+  list.innerHTML=show.map(s=>{
+    const st=STATUS_META[s.status]||STATUS_META.unverified;
+    const dist=s._d!=null?(s._d<1?Math.round(s._d*1000)+' m':s._d.toFixed(1)+' km'):'';
+    const tel=s.tel?`<a class="abtn tel" href="tel:${esc(s.tel.replace(/[^0-9\-]/g,''))}">📞 电话</a>`:'';
+    return `<div class="card">
+      <div class="r1"><div class="name">${esc(s.name)}</div><span class="badge ${st.cls}">${st.label}</span></div>
+      <div class="r2">${dist?`<span class="dist">${dist}</span>`:''}${esc(s.city==='深汕特别合作区'?'':s.district)}${s.district&&s.address?' · ':''}${esc(s.address)||'地址待补'}</div>
+      ${s.remark?`<div class="remark">⚠ ${esc(s.remark)}</div>`:''}
+      <div class="r3">
+        <a class="abtn pri" href="${navAmap(s)}" target="_blank" rel="noopener">🧭 高德导航</a>
+        <a class="abtn" href="${navTencent(s)}" target="_blank" rel="noopener">腾讯路线</a>
+        ${tel}
+        <button class="abtn" data-copy="${s.lng},${s.lat}">复制坐标</button>
+      </div>
+    </div>`;
+  }).join('') + (arr.length>show.length?`<button class="more" id="moreBtn">显示更多（剩 ${arr.length-show.length} 座）</button>`:'');
+  const mb=$('#moreBtn'); if(mb) mb.onclick=()=>{state.page++;renderList();};
+  list.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{
+    navigator.clipboard?.writeText(b.dataset.copy); b.textContent='已复制'; setTimeout(()=>b.textContent='复制坐标',1200);
+  });
+}
+
+/* ================= 计数条 ================= */
+function renderCount(){
+  const arr=filtered();
+  $('#countbar').innerHTML=`当前筛选 <b>${arr.length}</b> 座` +
+    (state.coords?'<span class="dist-tip">· 已按距您距离排序</span>':'') +
+    (state.status==='unverified'&&arr.length?'<span>· 点击卡片按钮可跳转导航实地核验</span>':'');
+}
+
+/* ================= 定位 ================= */
+$('#btnLoc').onclick=()=>{
+  if(!navigator.geolocation){alert('当前浏览器不支持定位');return;}
+  const btn=$('#btnLoc'); btn.textContent='定位中…';
+  navigator.geolocation.getCurrentPosition(p=>{
+    state.coords=[p.coords.latitude,p.coords.longitude];
+    btn.textContent='📍 已按距离排序'; btn.classList.add('using');
+    apply();
+  },()=>{btn.textContent='📍 定位失败';setTimeout(()=>btn.textContent='📍 最近优先',1500);
+    alert('定位失败：请检查浏览器定位权限（需 HTTPS 环境）');},
+    {enableHighAccuracy:true,timeout:8000});
+};
+
+/* ================= 搜索 ================= */
+const qEl=$('#q');
+qEl.addEventListener('input',()=>{state.q=qEl.value;$('#qClear').style.display=qEl.value?'block':'none';apply();});
+$('#qClear').onclick=()=>{qEl.value='';state.q='';$('#qClear').style.display='none';apply();};
+
+/* ================= 视图切换 ================= */
+$('#tabList').onclick=()=>setView('list');
+$('#tabMap').onclick=()=>setView('map');
+function setView(v){
+  state.view=v;
+  $('#tabList').classList.toggle('on',v==='list');
+  $('#tabMap').classList.toggle('on',v==='map');
+  $('#list').style.display = v==='list'?'flex':'none';
+  $('#countbar').style.display = v==='list'?'flex':'none';
+  $('#mapwrap').style.display = v==='map'?'block':'none';
+  if(v==='map') initMap();
+  else renderList();
+}
+
+/* ================= 地图（懒加载 + 自动降级） ================= */
+let mapInited=false, AMapOk=false, mass=null, infoWin=null, amap=null;
+function amapKeyOk(){ return window.__AMAP_KEY__ && !String(window.__AMAP_KEY__).includes('__AMAP_KEY__'); }
+function loadAMap(){
+  return new Promise((res,rej)=>{
+    if(window.AMap) return res();
+    if(!amapKeyOk()) return rej(new Error('no-key'));
+    if(window.__AMAP_SECURITY_CODE__ && !String(window.__AMAP_SECURITY_CODE__).includes('__AMAP_SECURITY_CODE__')){
+      window._AMapSecurityConfig={securityJsCode:window.__AMAP_SECURITY_CODE__};
+    }
+    const s=document.createElement('script');
+    s.src='https://webapi.amap.com/maps?v=2.0&key='+window.__AMAP_KEY__;
+    s.onload=res; s.onerror=()=>rej(new Error('load-fail'));
+    document.head.appendChild(s);
+  });
+}
+function pin(color){
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="30" viewBox="0 0 24 32"><path d="M12 0C5.4 0 0 5.4 0 12c0 8.8 12 20 12 20s12-11.2 12-20C24 5.4 18.6 0 12 0z" fill="%23${color}"/><circle cx="12" cy="12" r="4.6" fill="%23ffffff"/></svg>`;
+  return 'data:image/svg+xml,'+svg.replace('%23','#');
+}
+async function initMap(){
+  if(mapInited){renderMapSync();return;}
+  if(!amapKeyOk()){
+    $('#map').style.display='none';
+    const fb=$('#mapFallback'); fb.style.display='block';
+    fb.innerHTML=`<b>地图密钥未配置</b><br><br>管理员需在仓库 Settings → Secrets 中添加 <b>AMAP_KEY</b>（及可选 AMAP_SECURITY_CODE）后重新运行部署，页面将自动加载内嵌地图。<br><br>当前已自动保持<b>列表模式</b>可用，所有站点均可搜索、按距离排序并一键导航。`;
+    return;
+  }
+  try{
+    await loadAMap();
+    amap=new AMap.Map('map',{zoom:11,center:[114.06,22.55],viewMode:'2D'});
+    infoWin=new AMap.InfoWindow({offset:new AMap.Pixel(0,-30)});
+    mapInited=true; amapOk=true; renderMapSync();
+  }catch(e){
+    $('#map').style.display='none';
+    const fb=$('#mapFallback'); fb.style.display='block';
+    fb.innerHTML=`<b>地图加载失败</b><br><br>请检查 AMAP_KEY 是否为“Web端(JS API)”类型、安全密钥是否正确、以及是否已在高德控制台为本站域名配置白名单。<br><br>列表模式不受影响。`;
+  }
+}
+function renderMapSync(){
+  if(!mapInited||!window.AMap) return;
+  const arr=filtered();
+  if(mass){mass.setMap(null);mass=null;}
+  const colors={confirmed:'16a34a',unverified:'2563eb',unlikely:'9ca3af'};
+  const mk=c=>'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="22" height="30" viewBox="0 0 24 32"><path d="M12 0C5.4 0 0 5.4 0 12c0 8.8 12 20 12 20s12-11.2 12-20C24 5.4 18.6 0 12 0z" fill="%23'+c+'"/><circle cx="12" cy="12" r="4.6" fill="%23fff"/></svg>';
+  const styleOf={confirmed:0,unverified:1,unlikely:2};
+  const styles=[colors.confirmed,colors.unverified,colors.unlikely].map(c=>({
+    url:mk(c),size:new AMap.Size(22,30),anchor:new AMap.Pixel(11,30)
+  }));
+  mass=new AMap.MassMarks(arr.map((s,i)=>({
+    lnglat:[s.lng,s.lat],name:s.name,address:s.address,tel:s.tel,
+    id:s.id,status:s.status,style:styleOf[s.status]??1
+  })),{zIndex:120,zooms:[3,20],styles});
+  mass.setMap(amap);
+  mass.on('click',e=>{
+    const d=e.data||{};
+    const st=STATUS_META[d.status]||STATUS_META.unverified;
+    const tel=d.tel?`<div style="margin-top:2px">📞 ${esc(d.tel)}</div>`:'';
+    infoWin.setContent(`<div style="font-size:13px;max-width:230px">
+      <b>${esc(d.name)}</b><div style="color:#666;margin-top:2px">${esc(d.address||'')}</div>${tel}
+      <div style="margin-top:2px;color:#999;font-size:11px">状态：${st.label}</div>
+      <a href="${navAmap({name:d.name,lng:d.lnglat.lng,lat:d.lnglat.lat})}" target="_blank" rel="noopener"
+         style="display:inline-block;margin-top:6px;background:#c8102e;color:#fff;border-radius:6px;padding:4px 12px;text-decoration:none;font-size:12px">🧭 导航</a>
+    </div>`);
+    infoWin.open(amap,[d.lnglat.lng,d.lnglat.lat]);
+  });
+  if(arr.length){
+    amap.setFitView(null,false,[60,60,60,60]);
+  }
+}
+</script>
+</body>
+</html>

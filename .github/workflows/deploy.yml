@@ -1,0 +1,46 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject AMAP key from Secrets
+        env:
+          AMAP_KEY: ${{ secrets.AMAP_KEY }}
+          AMAP_SECURITY_CODE: ${{ secrets.AMAP_SECURITY_CODE }}
+        run: |
+          # 空 Secret 时注入空串，页面自动降级为列表模式，不影响部署
+          sed -i "s/__AMAP_KEY__/${AMAP_KEY}/g" assets/config.js
+          sed -i "s/__AMAP_SECURITY_CODE__/${AMAP_SECURITY_CODE}/g" assets/config.js
+          grep -c "AMAP_KEY" assets/config.js || true
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
