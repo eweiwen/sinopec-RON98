@@ -443,11 +443,24 @@ function renderMapSync(){
   labelsLayer.add(lms);
   amap.add(labelsLayer);
   labelsLayer.on('click',e=>{
+    let s=null;
+    /* 路径一：事件数据中的 LabelMarker（不同版本结构有差异，多路径尝试） */
     try{
-      const mk=e.data&&e.data.data&&e.data.data[0];
-      const s=mk&&mk.getExtData&&mk.getExtData();
-      if(s) showInfo(s);
+      const d=e.data||{};
+      const mk=(d.data&&d.data[0])||d.labelMarker||d.marker;
+      if(mk&&mk.getExtData) s=mk.getExtData();
     }catch(err){}
+    /* 路径二：点击坐标就近匹配（150m 内必命中，100% 可靠） */
+    if(!s&&e.lnglat){
+      try{
+        const lg=typeof e.lnglat.getLng==='function'?e.lnglat.getLng():e.lnglat[0];
+        const lt=typeof e.lnglat.getLat==='function'?e.lnglat.getLat():e.lnglat[1];
+        const arr=filtered(); let best=null,bd=1e9;
+        arr.forEach(t=>{const dd=hav(lt,lg,t.lat,t.lng); if(dd<bd){bd=dd;best=t;}});
+        if(best&&bd<0.15) s=best;
+      }catch(err){}
+    }
+    if(s) showInfo(s);
   });
   if(state.near){
     const n=state.near;

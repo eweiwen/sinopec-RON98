@@ -9,17 +9,17 @@
    "unlikely": "疑似不参与：名称或地址含加盟/联营等特征"
   },
   "counts": {
-   "深圳": 151,
-   "珠海": 64,
-   "广州": 260,
+   "深圳": 153,
+   "珠海": 67,
+   "广州": 262,
    "惠州": 181,
-   "东莞": 135,
+   "东莞": 136,
    "汕头": 49,
-   "肇庆": 113,
+   "肇庆": 117,
    "深汕特别合作区": 5,
    "汕尾": 38
   },
-  "total": 996
+  "total": 1008
  },
  "stations": [
   {
@@ -226,6 +226,19 @@
    "tel": "0755-26053720",
    "lng": 113.89942,
    "lat": 22.508828,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
+   "id": "B0FFFTIEAR",
+   "name": "中国石化沙河西加油加气站",
+   "city": "深圳",
+   "district": "南山区",
+   "address": "西丽街道沙河西路3031号",
+   "tel": "0755-86180233",
+   "lng": 113.955477,
+   "lat": 22.565638,
    "status": "unverified",
    "hint": "",
    "remark": ""
@@ -1006,9 +1019,9 @@
    "tel": "0755-83114534",
    "lng": 114.066799,
    "lat": 22.570762,
-   "status": "unverified",
+   "status": "unlikely",
    "hint": "",
-   "remark": ""
+   "remark": "用户人工核验：合资站，不参与爱跑98优惠活动（2026-09-24）"
   },
   {
    "id": "B02F37T4YJ",
@@ -1357,6 +1370,19 @@
    "tel": "0755-27974182",
    "lng": 114.056207,
    "lat": 22.715931,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
+   "id": "B0FFH986T7",
+   "name": "中国石化南坪加油加气站",
+   "city": "深圳",
+   "district": "龙华区",
+   "address": "民治街道南坪大道北面星河丹堤东门出口东面",
+   "tel": "0755-66821095",
+   "lng": 114.061829,
+   "lat": 22.595028,
    "status": "unverified",
    "hint": "",
    "remark": ""
@@ -1986,6 +2012,19 @@
    "remark": ""
   },
   {
+   "id": "B0GU3CJ1R8",
+   "name": "中国石化(内部专用)",
+   "city": "珠海",
+   "district": "斗门区",
+   "address": "斗门镇大王前",
+   "tel": "",
+   "lng": 113.131504,
+   "lat": 22.210564,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
    "id": "B0FFFS3TBN",
    "name": "中国石化东兴加油站",
    "city": "珠海",
@@ -2215,6 +2254,19 @@
    "tel": "0756-6336765",
    "lng": 113.289817,
    "lat": 22.163026,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
+   "id": "B0G2O5FLIF",
+   "name": "中国石化珠海大托山服务区北LNG加油加气站",
+   "city": "珠海",
+   "district": "斗门区",
+   "address": "白蕉镇江珠高速7421(北侧)",
+   "tel": "0756-6336133",
+   "lng": 113.279028,
+   "lat": 22.267692,
    "status": "unverified",
    "hint": "",
    "remark": ""
@@ -2475,6 +2527,19 @@
    "tel": "0756-6336760",
    "lng": 113.197654,
    "lat": 22.001736,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
+   "id": "B0FFGAFYRH",
+   "name": "中国石化(翠微东路店)",
+   "city": "珠海",
+   "district": "香洲区",
+   "address": "翠微东路1号",
+   "tel": "0756-6336913",
+   "lng": 113.547079,
+   "lat": 22.254734,
    "status": "unverified",
    "hint": "",
    "remark": ""
@@ -4139,6 +4204,19 @@
    "tel": "13113335862",
    "lng": 113.755257,
    "lat": 23.279802,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
+   "id": "B0FFMAW5GV",
+   "name": "中石化新田加油站",
+   "city": "广州",
+   "district": "增城区",
+   "address": "新塘镇瑶田村上田经济合作社白斗",
+   "tel": "020-32926536",
+   "lng": 113.627327,
+   "lat": 23.135369,
    "status": "unverified",
    "hint": "",
    "remark": ""
@@ -5985,6 +6063,19 @@
    "tel": "020-82389861",
    "lng": 113.489334,
    "lat": 23.115665,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
+   "id": "B00141JRXA",
+   "name": "中国石化广州中新南服务区LNG加油加气站",
+   "city": "广州",
+   "district": "黄埔区",
+   "address": "九龙镇洋田村广河高速中新服务区(东行)",
+   "tel": "020-32197815",
+   "lng": 113.6036,
+   "lat": 23.311061,
    "status": "unverified",
    "hint": "",
    "remark": ""
@@ -8585,6 +8676,19 @@
    "tel": "18819086824",
    "lng": 113.785452,
    "lat": 23.060429,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
+   "id": "B03017UW56",
+   "name": "中国石化东发加油加氢站",
+   "city": "东莞",
+   "district": "东莞市",
+   "address": "道滘道厚路32号",
+   "tel": "15019193780",
+   "lng": 113.679405,
+   "lat": 22.974528,
    "status": "unverified",
    "hint": "",
    "remark": ""
@@ -11567,6 +11671,19 @@
    "remark": ""
   },
   {
+   "id": "B02F600C40",
+   "name": "中国石化康州南LNG加油加气站",
+   "city": "肇庆",
+   "district": "德庆县",
+   "address": "悦城镇321国道洪院路段",
+   "tel": "0758-7611188",
+   "lng": 112.214784,
+   "lat": 23.10499,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
    "id": "B02F60PMIS",
    "name": "中国石化德庆城北加油站",
    "city": "肇庆",
@@ -11744,6 +11861,32 @@
    "tel": "0758-5313257;13556564188",
    "lng": 111.980466,
    "lat": 23.988335,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
+   "id": "B02F602Q49",
+   "name": "中国石化怀城北区LNG加油加气站",
+   "city": "肇庆",
+   "district": "怀集县",
+   "address": "二广高速公路怀集至三水段怀城服务区K110+500",
+   "tel": "0758-5861782",
+   "lng": 112.220902,
+   "lat": 23.814416,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
+   "id": "B02F602Q4J",
+   "name": "中国石化怀城南区LNG加油加气站",
+   "city": "肇庆",
+   "district": "怀集县",
+   "address": "二广高速公路怀集至三水段怀城服务区K",
+   "tel": "0758-5861338;0758-5861775",
+   "lng": 112.222543,
+   "lat": 23.811909,
    "status": "unverified",
    "hint": "",
    "remark": ""
@@ -12173,6 +12316,19 @@
    "tel": "0758-8361661",
    "lng": 112.43203,
    "lat": 23.006038,
+   "status": "unverified",
+   "hint": "",
+   "remark": ""
+  },
+  {
+   "id": "B02F60Q0WA",
+   "name": "中国石化肇庆中粮LNG加气站",
+   "city": "肇庆",
+   "district": "高要区",
+   "address": "小湘镇笋围孔湾村321国道旁",
+   "tel": "18312128378",
+   "lng": 112.336763,
+   "lat": 23.17471,
    "status": "unverified",
    "hint": "",
    "remark": ""

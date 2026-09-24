@@ -36,8 +36,20 @@ def to_shenshan(name: str, addr: str) -> bool:
 
 def main():
     raw = json.load(open(os.path.join(DATA, "raw_pois.json"), encoding="utf-8"))
+    # 合并补抓批次（010200 加气分类等漏网站），按 id 并集
+    extra_path = os.path.join(DATA, "raw_extra.json")
+    if os.path.exists(extra_path):
+        extra = json.load(open(extra_path, encoding="utf-8"))
+        for city, pois in extra.items():
+            ids = {p["id"] for p in raw.get(city, [])}
+            for p in pois:
+                if p["id"] not in ids:
+                    raw.setdefault(city, []).append(p)
     hits = json.load(open(os.path.join(DATA, "raw_aipao_hits.json"), encoding="utf-8"))
     hit_ids = set(hits.keys())
+    # 人工核验覆盖（永久生效，不随抓取重置）
+    ov_path = os.path.join(DATA, "manual_overrides.json")
+    overrides = json.load(open(ov_path, encoding="utf-8")) if os.path.exists(ov_path) else {}
 
     stations, dropped = [], []
     for city, pois in raw.items():
@@ -60,6 +72,12 @@ def main():
             status = "unverified"
             if any(k in name for k in ("加盟", "联营", "特许")):
                 status = "unlikely"
+            # 人工核验覆盖（最高优先级，永久生效）
+            ov = overrides.get(p["id"])
+            if ov:
+                status = ov.get("status", status)
+                if ov.get("note"):
+                    remark = (remark + "；" if remark else "") + ov["note"]
             stations.append({
                 "id": p["id"],
                 "name": name.replace("(暂停营业)", "").replace("（暂停营业）", "").strip(),
