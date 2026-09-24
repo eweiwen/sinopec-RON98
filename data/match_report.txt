@@ -7,7 +7,7 @@ POI 站点: 1008
   未命中:       296 座
 
 status 分布（唯一来源：manual_overrides.json 白名单）:
-  confirmed（白名单官方核验）:     61
+  confirmed（白名单官方核验）:     62
   unlikely（用户人工标记）:          1
   unlikely（名称/地址含合资特征）:   1
-  unverified（默认）:              945
+  unverified（默认）:              944

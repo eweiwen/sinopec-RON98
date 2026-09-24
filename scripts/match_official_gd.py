@@ -161,7 +161,7 @@ def main():
         # ---- status 由白名单/用户标记驱动，售卡站匹配不升级 ----
         if sid in whitelist:
             s["status"] = "confirmed"
-            s["hint"] = "官方名单核验：中石化深圳分公司官方名单确认，参与爱跑98优惠。"
+            s["hint"] = overrides[sid].get("note", "官方名单核验：中石化深圳分公司官方名单确认，参与爱跑98优惠。")
             stats["confirmed_from_whitelist"] += 1
         elif sid in unlikely_ids:
             s["status"] = "unlikely"
